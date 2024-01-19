@@ -56,70 +56,14 @@ def run_config(mapspace, spatial_config, perm_config, factor_config, status_dict
     mapping = mapspace.generate_mapping()
 
     output_base = pathlib.Path(output_path).resolve()
-    output_dir = output_base / mapspace.arch.config_str() / mapspace.prob.config_str() / mapspace.config_str()[0] / \
-                 mapspace.config_str()[1]
     # print(output_dir)
 
-    status_dict[status_dict_key]['output_dir'] = str(output_dir)
+    status_dict[status_dict_key]['output_dir'] = str(output_base)
 
-    output_dir.mkdir(parents=True, exist_ok=True)
-    prefix = 'tc'
-
-    map_path = output_dir / 'map_16.yaml'
-    logger.info("map_path: {}".format(map_path))
-    xml_file = output_dir / 'timeloop-model.map+stats.xml'
-    csv_file = output_dir / "{}.csv".format(prefix)
-    json_file = output_dir / "{}.json".format(prefix)
-    stats_file = output_dir / "{}.summary.json".format(prefix)
-    status_dict_file = output_dir / "{}.dict.json".format(prefix)
+    map_path = output_base / 'map_16.yaml'
 
     utils.store_yaml(map_path, mapping)
-    # logger.debug("status_dict_before: {}".format(status_dict[status_dict_key]))
-    # generate map 
-    if run_gen_map:
-        # print('run_timeloop> timeloop-model {} {} {}'.format(mapspace.arch.path, mapspace.prob.path, map_path))
-        if map_path.exists() and not xml_file.exists():
-            status_dict[status_dict_key]['run_status'][0] = 0
-        elif not xml_file.exists():
-            # logger.info("Run Generate Mapping")
-            utils.store_yaml(map_path, mapping)
-            success = utils.run_timeloop(mapspace.arch.path, mapspace.prob.path, map_path, cwd=output_dir)
-
-            # if passes timeloop check
-            if not success:
-                status_dict[status_dict_key]['run_status'][0] = 0
-                logger.info("\tInvalid Mapping Detected!")
-                if delete_invalid:
-                    shutil.rmtree(
-                        output_base / mapspace.arch.config_str() / mapspace.prob.config_str() / mapspace.config_str()[
-                            0])
-                return status_dict[status_dict_key]
-            else:
-                # logger.info("\tValid Mapping Detected!")
-                assert (xml_file.exists())
-                status_dict[status_dict_key]['run_status'][0] = 1
-        else:
-            status_dict[status_dict_key]['run_status'][0] = 1
-
-        # Parse buffer util
-        if xml_file.exists():
-            subnest_info = get_subnest_info(xml_file)
-            bufsize = subnest_info['bufsize']
-            pe_cycle = subnest_info['pe_cycle']
-            pe_energy = subnest_info['pe_energy']
-            cycle = subnest_info['cycle']
-            energy = subnest_info['energy']
-            status_dict[status_dict_key]['pe_cycle'] = pe_cycle
-            status_dict[status_dict_key]['pe_energy'] = pe_energy
-            status_dict[status_dict_key]['energy'] = energy
-            status_dict[status_dict_key]['cycle'] = cycle
-            for buf_idx, (buf_name, buf) in enumerate(bufsize.items()):
-                utilized_capacity = 0
-                for mem_util in buf:
-                    utilized_capacity += mem_util
-                status_dict[status_dict_key]['utilized_capacity'].append(utilized_capacity)
-    logger.info("Status: {}".format(status_dict[status_dict_key]))
-    utils.store_json(status_dict_file, status_dict, indent=4)
+    
     return status_dict[status_dict_key]
 
 

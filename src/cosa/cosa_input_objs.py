@@ -141,31 +141,13 @@ class Arch(object):
                     self.mem_idx[mem['name']] = idx
                     self.mem_name[idx] = mem['name']
                     self.mem_instances.append(mem['attributes']['instances'])
-                    if "entries" in mem['attributes']:
-                      self.mem_entries.append(mem['attributes']['entries'])
-                    elif "depth" in mem['attributes']:
-                      block_size = 1
-                      if "block_size" in mem['attributes']:
-                        block_size = mem['attributes']['block-size']
-                      self.mem_entries.append(mem['attributes']['depth'] * block_size)
-                    else:
-                      print(f"no entries or depth in {mem['name']}")
-                      exit(1)
+                    self.mem_entries.append(self.parse_buffer(mem['attributes'], mem["name"]))
                     idx += 1
 
             self.mem_idx[self.global_buf['name']] = idx
             self.mem_name[idx] = self.global_buf['name']
             self.mem_instances.append(self.global_buf['attributes']['instances'])
-            if "entries" in self.global_buf['attributes']:
-              self.mem_entries.append(self.global_buf['attributes']['entries'])
-            elif "depth" in self.global_buf['attributes']:
-              block_size = 1
-              if "block_size" in self.global_buf['attributes']:
-                block_size = self.global_buf['attributes']['block-size']
-              self.mem_entries.append(self.global_buf['attributes']['depth'] * block_size)
-            else:
-              print(f"no entries or depth in {self.global_buf['name']}")
-              exit(1)
+            self.mem_entries.append(self.parse_buffer(self.global_buf['attributes'], self.global_buf["name"]))
             idx += 1
             self.mem_idx[self.dram['name']] = idx
             self.mem_name[idx] = self.dram['name']
@@ -175,6 +157,20 @@ class Arch(object):
         self.mem_levels = len(self.mem_idx.items())
         self.S = self.gen_spatial_constraint()
 
+    def parse_buffer(self, attr: dict, name: str) -> int:
+        entries = 1
+        if "entries" in attr:
+          entries = attr["entries"]
+        elif "depth" in attr:
+          block_size = 1
+          if "block_size" in attr:
+            block_size = attr["block_size"]
+          entries = attr["depth"] * block_size
+        else:
+          print(f"no entries or depth in {name}")
+          exit(1)
+        return entries
+          
     def gen_spatial_constraint(self):
         """Generate spatial constraints."""
         S = []
