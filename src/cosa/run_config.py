@@ -73,6 +73,7 @@ def run_config(mapspace, spatial_config, perm_config, factor_config, status_dict
     stats_file = output_dir / "{}.summary.json".format(prefix)
     status_dict_file = output_dir / "{}.dict.json".format(prefix)
 
+    utils.store_yaml(map_path, mapping)
     # logger.debug("status_dict_before: {}".format(status_dict[status_dict_key]))
     # generate map 
     if run_gen_map:

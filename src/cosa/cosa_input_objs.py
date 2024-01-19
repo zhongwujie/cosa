@@ -137,22 +137,41 @@ class Arch(object):
             self.pe_buf = arch_dict['architecture']['subtree'][0]['subtree'][0]['subtree'][0]['local']
             idx = 0
             for i, mem in enumerate(self.pe_buf[::-1]):
-                if mem['class'] == 'SRAM' or mem['class'] == 'regfile':
+                if mem['class'] == 'SRAM' or mem['class'] == 'regfile' or mem["class"] == "storage":
                     self.mem_idx[mem['name']] = idx
                     self.mem_name[idx] = mem['name']
                     self.mem_instances.append(mem['attributes']['instances'])
-                    self.mem_entries.append(mem['attributes']['entries'])
+                    if "entries" in mem['attributes']:
+                      self.mem_entries.append(mem['attributes']['entries'])
+                    elif "depth" in mem['attributes']:
+                      block_size = 1
+                      if "block_size" in mem['attributes']:
+                        block_size = mem['attributes']['block-size']
+                      self.mem_entries.append(mem['attributes']['depth'] * block_size)
+                    else:
+                      print(f"no entries or depth in {mem['name']}")
+                      exit(1)
                     idx += 1
 
             self.mem_idx[self.global_buf['name']] = idx
             self.mem_name[idx] = self.global_buf['name']
             self.mem_instances.append(self.global_buf['attributes']['instances'])
-            self.mem_entries.append(self.global_buf['attributes']['entries'])
+            if "entries" in self.global_buf['attributes']:
+              self.mem_entries.append(self.global_buf['attributes']['entries'])
+            elif "depth" in self.global_buf['attributes']:
+              block_size = 1
+              if "block_size" in self.global_buf['attributes']:
+                block_size = self.global_buf['attributes']['block-size']
+              self.mem_entries.append(self.global_buf['attributes']['depth'] * block_size)
+            else:
+              print(f"no entries or depth in {self.global_buf['name']}")
+              exit(1)
             idx += 1
             self.mem_idx[self.dram['name']] = idx
             self.mem_name[idx] = self.dram['name']
             self.mem_instances.append(self.dram['attributes']['instances'])
             self.arch = {"instances": self.mem_instances, "entries": self.mem_entries}
+        print(f"mem_idx: {self.mem_idx}", flush=True)
         self.mem_levels = len(self.mem_idx.items())
         self.S = self.gen_spatial_constraint()
 

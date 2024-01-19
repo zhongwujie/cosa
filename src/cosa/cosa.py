@@ -22,7 +22,7 @@ except KeyError:
 
 # Ensure the Timeloop version matches the a specific commit 
 # that CoSA was developed for
-check_timeloop_version()
+# check_timeloop_version()
 
 def construct_argparser():
     parser = argparse.ArgumentParser(description='Run Configuration')
@@ -591,7 +591,7 @@ def run_timeloop(prob_path, arch_path, mapspace_path, output_path):
     try:
         spatial_configs = []
         results = run_config.run_config(mapspace, None, perm_config, update_factor_config, status_dict,
-                                        run_gen_map=True, run_gen_tc=False, run_sim_test=False, output_path=output_path,
+                                        run_gen_map=False, run_gen_tc=False, run_sim_test=False, output_path=output_path,
                                         spatial_configs=spatial_configs, valid_check=False, outer_loopcount_limit=100)
         logger.info(f'status_dict: {status_dict}')
     except:
